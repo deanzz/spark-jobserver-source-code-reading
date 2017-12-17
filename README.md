@@ -72,6 +72,7 @@ new WebApi(system, config, port, binManager, dataManager, supervisor, jobInfo).s
 ```
 
 3. WebApi.start
+JobServer的start方法调用了WebApi.start方法，<br/>
 WebService.start是spray内部的方法，将各种路由加到服务中，并启动了服务，绑定了监听地址和端口。<br/>
 再想了解细节，可以去学习一下spray框架，但达到明白jobserver服务启动的流程，知道这个方法是启动web服务的，就已经足够了。
 ```scala
