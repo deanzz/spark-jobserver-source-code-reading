@@ -27,7 +27,7 @@ else
 fi
 ```
 
-2. JobServer<br/>
+2. JobServer.start<br/>
 接下来的线索是什么？对，就是上面定义的入口类，即MAIN变量的值，我们来看看JobServer这个类，<br/>
 这个类中有main方法，main方法中调用start方法，所以咱们主要看start方法的逻辑。<br/>
 start方法的前半部分主要对各种配置的合法性进行了判断，后半部分是重点<br/>
@@ -69,6 +69,17 @@ supervisor ! ContextSupervisor.AddContextsFromConfig
 WebApi中包含很多路由配置，在这里你可以根据uri和http method找到感兴趣的API的描述和处理逻辑。
 ```scala
 new WebApi(system, config, port, binManager, dataManager, supervisor, jobInfo).start()
+```
+
+3. WebApi.start
+WebService.start是spray内部的方法，将各种路由加到服务中，并启动了服务，绑定了监听地址和端口。<br/>
+再想了解细节，可以去学习一下spray框架，但达到明白jobserver服务启动的流程，知道这个方法是启动web服务的，就已经足够了。
+```scala
+def start() {
+    ...
+    logger.info("Starting browser web service...")
+    WebService.start(myRoutes ~ commonRoutes, system, bindAddress, port)
+  }
 ```
 
 至此，我们的jobserver就启动成功了。
