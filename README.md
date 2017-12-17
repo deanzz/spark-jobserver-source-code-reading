@@ -1,9 +1,11 @@
 # spark-jobserver源码解读
 >spark-jobserver是咱们elemental系统中一个重要的组件，但是它存在很多问题，比如由于jobserver和aco两边状态的不一致，导致的context同时被多个任务使用；
-jobserver UI上显示的任务状态不对，需要手动维护正确的状态等问题等问题。为了以后改进jobserver，最近阅读了其部分源码，做好修改的准备，总体来说还是比较简单的。
+jobserver UI上显示的任务状态不对，需要手动维护正确的状态等问题等问题。<br/>
+为了接下来改进jobserver，最近阅读了部分源码，做好修改的准备。
 
-这次分享主要是解读`服务的启动`、`创建context`和`提交job`三个部分的源码，因为他们与elemental系统的关系相对密切，代码是master分支截至2017.11.27提交的版本（目前最新）。<br/>
-建议大家clone下来最新的master分支代码，跟着下面的步骤，一步一步跟踪，这样你会理解的更快。
+这次分享主要是解读`服务的启动`、`创建context`和`提交job`三个部分的源码，并且只解读`正常分支`。<br/>
+代码是master分支截至2017.11.27提交的版本（目前最新）。<br/>
+建议大家clone下来最新的master分支代码，将11.27的提交新建一个分支，跟着下面的步骤，一步一步跟踪，这样你会理解的更快。
 
 ## 服务的启动
 1. server_start.sh<br/>
@@ -402,8 +404,8 @@ Some(getJobFuture(jobContainer, jobInfo, jobConfig, sender, jobContext, sparkEnv
 4. JobManagerActor.getJobFuture
 下面来看看getJobFuture方法，这里就是跑任务的核心逻辑了。<br/>
 先获取已加载的job，然后根据用户实现的子类中的验证方法验证job的合法性，再返回任务成功提交的状态给前端，<br/>
-最后调用用户实现子类中的runJob方法，执行任务，这里是在返回提交成功结果后，继续执行。<br/>
-待任务完成后，就会进入andThen，分别发送任务结果和任务状态给resultActor和statusActor，
+最后调用用户实现子类中的runJob方法，执行任务，这里是在返回提交成功结果后，后台继续执行。<br/>
+待任务完成后，就会进入andThen，分别发送任务结果和任务状态给resultActor和statusActor。
 ```scala
 Future {  
   ...
@@ -486,6 +488,8 @@ case JobStarted(_, jobInfo) =>
 ## 总结
 看了上面的解读过程，是不是可以总结一下源码阅读的经验呢？下面我来总结一下我的经验。<br/>
 1. 在阅读一个项目的源码前，要了解其使用了哪些技术，比如spark-jobserver就用了akka-cluster、spray等，需要做一些知识储备<br/>
-2. 选择自己感兴趣的内容阅读，一定要找对阅读的入口，比如上面服务启动中的server_start.sh、接口WebApi中的接口处理逻辑<br/>
-3. 抓住重点，能将流程穿起来的线索要多留心<br/>
-4. 要有耐心<br/>
+2. 先选择少量几个感兴趣的内容阅读，当套路清晰后，再阅读其他内容<br/>
+3. 找对阅读的入口，比如上面服务启动中的server_start.sh、接口WebApi中的接口处理逻辑<br/>
+4. 主要关心正常分支<br/>
+5. 抓住能将整个流程穿起来的线索<br/>
+6. 要有耐心<br/>
